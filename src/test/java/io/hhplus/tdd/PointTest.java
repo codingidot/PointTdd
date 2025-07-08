@@ -169,7 +169,7 @@ public class PointTest {
 		Assertions.assertEquals(500, pointService.selectUserById(id1).point());
 	}
 	
-	//충전 동시성 제어 테스트
+	//포인트 사용 동시성 제어 테스트
 	@Test
 	public void testConcurrent2() {
 		int threadCount = 100;
