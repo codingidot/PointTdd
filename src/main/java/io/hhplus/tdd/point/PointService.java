@@ -23,9 +23,12 @@ public class PointService {
 	}
 
 	//특정 유저의 포인트를 충전
-	public UserPoint chargeUserPoint(long id, long amount) {
+	public UserPoint chargeUserPoint(long id, long amount) throws Exception {
 		UserPoint userPoint = pointRepository.selectUserById(id);
 		long totalAmount = userPoint.point() + amount;
+		if(totalAmount > 10000000) {
+			throw new Exception("포인트는 천만원을 초과하지 못합니다.");
+		}
 		userPoint = pointRepository.updatePoint(id, totalAmount);
 		pointRepository.addHistory(id, amount, TransactionType.CHARGE);
 		return userPoint;

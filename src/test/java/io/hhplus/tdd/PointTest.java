@@ -36,11 +36,27 @@ public class PointTest {
 		long amount1 = 100;
 		long amount2 = 200;
 		UserPoint user1;
-				
-		user1 = pointService.chargeUserPoint(id1, amount1);
-		Assertions.assertEquals(amount1, user1.point(),"충전한 금액 일치 확인");//100
-		user1 = pointService.chargeUserPoint(id1, amount2);
-		Assertions.assertEquals(amount1+amount2, user1.point(),"충전한 금액 일치 확인");//300
+		
+		//충전되는 금액 확인
+		Assertions.assertDoesNotThrow(() -> {
+			pointService.chargeUserPoint(id1, amount1);
+		},"충전 금액이 천만원을 넘지 않으면 에러가 발생하지 않음");
+		
+		Assertions.assertEquals(amount1, pointService.selectUserById(id1).point(),"충전한 금액 일치 확인");//100
+		
+		Assertions.assertDoesNotThrow(() -> {
+			pointService.chargeUserPoint(id1, amount2);
+		},"충전 금액이 천만원을 넘지 않으면 에러가 발생하지 않음");
+		
+		Assertions.assertEquals(amount1+amount2, pointService.selectUserById(id1).point(),"충전한 금액 일치 확인");//300
+		
+		//천만원 초과 충전시 에러 발생
+		Exception e = Assertions.assertThrows(
+		        Exception.class,
+		        () -> pointService.chargeUserPoint(id1, 9999701)//300 + 9999701 = 10000001 
+		    ,"천만을 초과하여 Exception throw");
+		
+		Assertions.assertEquals("포인트는 천만원을 초과하지 못합니다.", e.getMessage(), "포인트 초과 충전시 날린 Exception 메시지 확인");		
 	}
 	
 	//유저 포인트 사용
@@ -53,7 +69,9 @@ public class PointTest {
 		long amount3 = 100;
 
 		//충전
-		pointService.chargeUserPoint(id1, amount1);
+		Assertions.assertDoesNotThrow(() -> {
+			pointService.chargeUserPoint(id1, amount1);
+		},"충전 금액이 천만원을 넘지 않으면 에러가 발생하지 않음");
 		
 		//사용
 		Assertions.assertDoesNotThrow(() -> {
@@ -78,7 +96,11 @@ public class PointTest {
 		long amount1 = 400;
 		UserPoint user1;
 		
-		pointService.chargeUserPoint(id1, amount1);
+		//층전
+		Assertions.assertDoesNotThrow(() -> {
+			pointService.chargeUserPoint(id1, amount1);
+		});
+		
 		user1 = pointService.selectUserById(id1);
 		
 		Assertions.assertEquals(id1, user1.id(), "조회한 id 확인");
@@ -93,12 +115,13 @@ public class PointTest {
 		long id1 = 1;
 		
 		//충전 및 사용
-		pointService.chargeUserPoint(id1, 3000);
-		pointService.chargeUserPoint(id1, 600);
+		
 		Assertions.assertDoesNotThrow(() -> {
+			pointService.chargeUserPoint(id1, 3000);
+			pointService.chargeUserPoint(id1, 600);
 			pointService.useUserPoint(id1, 200);
+			pointService.chargeUserPoint(id1, 400);
 		});
-		pointService.chargeUserPoint(id1, 400);
 		
 		List<PointHistory> history = pointService.selectHistoryById(id1);
 		//히스토리 등록 시간 내림차순 정렬
