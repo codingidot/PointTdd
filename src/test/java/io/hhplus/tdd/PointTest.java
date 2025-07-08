@@ -19,9 +19,11 @@ import io.hhplus.tdd.point.UserPoint;
 public class PointTest {
 
 	PointService pointService;
+	long id1 = 1;
 	
 	@BeforeEach
     void setUp() {
+		//각 테스트 메서드마다 데이터 초기화
 		UserPointTable userPointTable = new UserPointTable();
 		PointHistoryTable pointHistoryTable = new PointHistoryTable();
         PointRepository pointRepository = new PointRepository(userPointTable, pointHistoryTable);
@@ -31,11 +33,9 @@ public class PointTest {
 	//유저 포인트 충전
 	@Test
 	public void chargePoint() {
-		//user , point 등록
-		long id1 = 1;
+
 		long amount1 = 100;
 		long amount2 = 200;
-		UserPoint user1;
 		
 		//충전되는 금액 확인
 		Assertions.assertDoesNotThrow(() -> {
@@ -62,8 +62,7 @@ public class PointTest {
 	//유저 포인트 사용
 	@Test
 	public void usePoint() {
-		//user , point 등록
-		long id1 = 1;
+
 		long amount1 = 300;
 		long amount2 = 200;
 		long amount3 = 100;
@@ -91,8 +90,7 @@ public class PointTest {
 	//특정 유저의 포인트를 조회
 	@Test
 	public void selectPointById() {
-		//user , point 등록
-		long id1 = 1;
+
 		long amount1 = 400;
 		UserPoint user1;
 		
@@ -110,10 +108,7 @@ public class PointTest {
 	//특정 유저의 포인트 충전/이용 내역을 조회
 	@Test
 	public void selectUserPointHistory() {
-		
-		//user , point 등록
-		long id1 = 1;
-		
+
 		//충전 및 사용
 		
 		Assertions.assertDoesNotThrow(() -> {
