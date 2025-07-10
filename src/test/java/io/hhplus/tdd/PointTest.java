@@ -110,7 +110,6 @@ public class PointTest {
 	public void selectUserPointHistory() {
 
 		//충전 및 사용
-		
 		Assertions.assertDoesNotThrow(() -> {
 			pointService.chargeUserPoint(id1, 3000);
 			pointService.chargeUserPoint(id1, 600);
@@ -133,5 +132,70 @@ public class PointTest {
 	    PointHistory ph = sorted.get(0);
 	    Assertions.assertEquals(TransactionType.CHARGE, ph.type(),"충전 또는 사용인지 확인");
 	    Assertions.assertEquals(400, ph.amount(),"사용 금액 확인");
+	}
+	
+	//충전 동시성 제어 테스트
+	@Test
+	public void testConcurrent() {
+		int threadCount = 100;
+        // 초기 포인트 세팅(1000포인트 충전)
+		Assertions.assertDoesNotThrow(() -> {
+			pointService.chargeUserPoint(id1, 1000);
+		});
+		Assertions.assertEquals(1000, pointService.selectUserById(id1).point());
+        Thread[] threads = new Thread[threadCount];
+
+        for (int i = 0; i < threadCount; i++) {
+        	//100번 돌면 총 500포인트 사용 
+            threads[i] = new Thread(() -> {
+            	Assertions.assertDoesNotThrow(() -> {
+            		pointService.useUserPoint(id1, 5);//5포인트 사용
+            	});
+            });
+        }
+
+        // 스레드 시작
+        for (Thread t : threads) {
+            t.start();
+        }
+
+        // 스레드 종료 대기
+        for (Thread t : threads) {
+        	Assertions.assertDoesNotThrow(() -> {
+        		t.join();
+        	});
+        }
+
+		Assertions.assertEquals(500, pointService.selectUserById(id1).point());
+	}
+	
+	//포인트 사용 동시성 제어 테스트
+	@Test
+	public void testConcurrent2() {
+		int threadCount = 100;
+        Thread[] threads = new Thread[threadCount];
+
+        for (int i = 0; i < threadCount; i++) {
+        	//100번 돌면 총 500포인트 충전 
+            threads[i] = new Thread(() -> {
+            	Assertions.assertDoesNotThrow(() -> {
+            		pointService.chargeUserPoint(id1, 5);
+            	});
+            });
+        }
+
+        // 스레드 시작
+        for (Thread t : threads) {
+            t.start();
+        }
+
+        // 스레드 종료 대기
+        for (Thread t : threads) {
+        	Assertions.assertDoesNotThrow(() -> {
+        		t.join();
+        	});
+        }
+
+		Assertions.assertEquals(500, pointService.selectUserById(id1).point());
 	}
 }
